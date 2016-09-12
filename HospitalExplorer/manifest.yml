@@ -1,0 +1,10 @@
+applications:
+- path: target/JavaDBApp.war
+  memory: 512M
+  instances: 1
+  domain: mybluemix.net
+  name: Medico12
+  host: Medico12
+  disk_quota: 1024M
+  services:
+  - Medico12-sqldb
