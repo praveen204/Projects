@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Trip Planner using Uber vs Lyft's Price Estimation</title>
+<style>
+.menu {
+	position: relative;
+	z-index: 1; /* The z-index should be higher than Google Maps */
+	width: 320px; //
+	margin: 30px auto 0;
+	padding: 10px;
+	background: #4885ed;
+	border-radius: 10px;
+	height: relative; //
+	opacity: .50;
+	/* Set the opacity for a slightly transparent Google Form */
+	color: white;
+	margin-left: 0px;
+	-webkit-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+	box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+}
+
+#map {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+}
+
+#header {
+	font-weight: bold; //
+	opacity: .80;
+	height: 38px;
+	color: white; //
+	background-color: blue;
+	position: relative;
+	z-index: 1;
+	font-family: cursive;
+	font-size: x-large;
+}
+
+.button {
+	background-color: #4CAF50; /* Green */
+	border: none;
+	color: white;
+	padding: 5px 12px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	border-radius: 20px;
+	font-size: 12px;
+	margin: 4px 2px;
+	-webkit-transition-duration: 0.4s; /* Safari */
+	transition-duration: 0.4s;
+	cursor: pointer;
+}
+
+.button1 {
+	background-color: white;
+	color: black;
+	border: 2px solid #4CAF50;
+}
+
+.button1:hover {
+	background-color: #4CAF50;
+	color: white;
+	opacity: .75;
+}
+
+.button2 {
+	background-color: white;
+	color: black;
+	border: 2px solid #f44336;
+}
+
+.button2:hover {
+	background-color: #f44336;
+	color: white;
+	opacity: .75;
+}
+
+#footer {
+	height: 30px;
+	position: absolute;
+	bottom: 0;
+}
+
+body {
+	height: 100%;
+	margin-bottom: 30px;
+}
+
+.directions-route-stop {
+	font-weight: bold;
+	height: 45px;
+	width: 250px;
+	box-sizing: border-box;
+	padding: 14px 12px; //
+	margin: 0px 0;
+	font-family: cursive;
+	border-radius: 10px; //
+	background-image:
+		url('https://www.google.com/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&ved=0ahUKEwiPrYiH-8fQAhVU9mMKHV0lAxQQjRwIBQ&url=https%3A%2F%2Fwww.iconfinder.com%2Fsearch%2F%3Fq%3Dsearch&psig=AFQjCNFfCleMp9QxI0fjkN0gVKlRnWCrqA&ust=1480302601585904');
+}
+
+.directions-route-stop-icon {
+	position: relative; //
+	top: 13px;
+	z-index: 1;
+	height: 30px;
+	width: 30px;
+}
+</style>
+<script type="text/javascript"
+	src="static/js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" >
+
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+
+</script>
+
+<script type="text/javascript">
+function validateForm() {
+	var x1 = document.forms["myForm"]["source"].value;
+    if (x1 == null || x1 == "") {
+        alert("Please give a valid source");
+        return false;
+    }
+    var x2 = document.forms["myForm"]["dest"].value;
+    if (x2 == null || x2 == "") {
+        alert("Please give a valid destination");
+        return false;
+    }
+    
+}
+</script>
+</head>
+<body>
+	<!-- 	<div id="header"> -->
+	<!-- 		<center>Trip Planner using Uber vs Lyft's Price Estimation</center> -->
+	<!-- 	</div> -->
+	<div id="content">
+		<div class="menu" src="Menu.html">
+			<div id="header">
+				<center>Uber vs Lyft's Estimation</center>
+			</div>
+			</br>
+			<center>
+				<form id="myForm" method="post" enctype="application/json" action="http://localhost:9000/v1/prices"  onsubmit="return validateForm()">
+					<table>
+						<tr>
+							<td><img class="directions-route-stop-icon"
+								ng-src="https://content.mqcdn.com/yogi-cdn/yogi/icons/start.png"
+								src="https://content.mqcdn.com/yogi-cdn/yogi/icons/start.png"></td>
+
+							<td><input class="directions-route-stop" id="source"
+								name="source" type="text" placeholder="Enter Source" size="20"></td>
+						</tr>
+						<tr>
+							<td colspan=2></td>
+						</tr>
+					</table>
+
+					<table id="dataTable">
+						<tr>
+							<td></td>
+							<td></td>
+							<td><input type="hidden" value="0"></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</table>
+					<table>
+
+						<tr>
+							<td colspan=2></td>
+						</tr>
+						<tr>
+							<td><img class="directions-route-stop-icon"
+								ng-src="https://content.mqcdn.com/yogi-cdn/yogi/icons/finish.png"
+								src="https://content.mqcdn.com/yogi-cdn/yogi/icons/finish.png"></td>
+							<td><input class="directions-route-stop" id="dest" name="dest"
+								type="text" placeholder="Enter Destination" size="20"></td>
+						</tr>
+					</table>
+					</br>
+					<table align="center">
+						<tr align="left">
+							<td colspan=2><INPUT class="button button1" type="button"
+								value="Add Enroute" onclick="addRow('dataTable')" /></td>
+							<!-- <td><INPUT class="button button2" type="button"
+							value="Delete Enroute" onclick="deleteRow('dataTable')" /></td> -->
+						</tr>
+					</table>
+					<input type=hidden id="src_street_number" name="src_street_number"/> 
+					<input type=hidden id="src_route" name="src_route" /> 
+					<input type=hidden id="src_locality" name="src_city" />
+					 <input	type=hidden id="src_administrative_area_level_1" name="src_state" />
+					  <input type=hidden id="src_postal_code"  name="src_zip"/>
+					<input type=hidden id="src_country" name="src_country" />
+					<input type=hidden id="src_address" name="src_address"  />
+					<input type=hidden id="src_lat" name="src_lat"  />
+					<input type=hidden id="src_long" name="src_long"  />
+					 <input type=hidden id="dst_street_number"  name="dst_street_number"/>
+					  <input type=hidden id="dst_route" name="dst_route" />
+					   <input type=hidden id="dst_locality" name="dst_city" /> 
+					   <input type=hidden id="dst_administrative_area_level_1"  name="dst_state"/>
+					     <input type=hidden id="dst_postal_code"   name="dst_zip" /> 
+					     <input type=hidden id="dst_country" name="dst_country" />
+					     <input type=hidden id="dst_address" name="dst_address" />
+					     <input type=hidden id="dst_lat" name="dst_lat"  />
+					<input type=hidden id="dst_long" name="dst_long"  />
+					      <input type="hidden" id="encryptedstring" name="encryptedstring" value=",0,"></input> <input type="submit"
+						value="Submit" /> </br>
+					</br>
+					</br>
+				</form>
+			</center>
+		</div>
+		<div id=map></div>
+	</div>
+
+	<script>
+		var count = 0;
+		window.counter=0;
+		var waypts=[];
+		sessionStorage.setItem('waypts', JSON.stringify(waypts));
+		var componentForm = {
+			street_number : 'short_name',
+			route : 'long_name',
+			locality : 'long_name',
+			administrative_area_level_1 : 'short_name',
+			country : 'long_name',
+			postal_code : 'short_name'
+			
+		};
+		
+		function initMap() {
+		
+
+			window.map = new google.maps.Map(document.getElementById('map'), {
+				center : {
+					lat : 37.3335423,
+					lng : -121.9132912
+				},
+				zoom : 10
+			});
+			var src = (document.getElementById('source'));
+			var dst = (document.getElementById('dest'));
+			window.bounds = new google.maps.LatLngBounds();
+
+			var autocompletesrc = new google.maps.places.Autocomplete(src);
+			var autocompletedst = new google.maps.places.Autocomplete(dst);
+			autocompletesrc.bindTo('bounds', map);
+			autocompletedst.bindTo('bounds', map);
+			var infowindow = new google.maps.InfoWindow();
+			window.gmarkers = [];
+			gmarkers[-1] = new google.maps.Marker({
+				map : map,
+				anchorPoint : new google.maps.Point(0, -29)
+			});
+
+			gmarkers[-2] = new google.maps.Marker({
+				map : map,
+				anchorPoint : new google.maps.Point(0, -29)
+			});
+			autocompletesrc
+					.addListener(
+							'place_changed',
+							function() {
+								var place = autocompletesrc.getPlace();
+								if(typeof(Storage) !== "undefined") {
+									sessionStorage.org=place.place_id;
+									}
+								if (place.geometry.viewport) {
+									map.fitBounds(place.geometry.viewport);
+								} else {
+									map.setCenter(place.geometry.location);
+									map.setZoom(17); // Why 17? Because it looks good.
+								}
+								//window.alert("hi" + place.geometry.location);
+								for ( var component in componentForm) {
+									document.getElementById('src_' + component).value = '';
+									document.getElementById('src_' + component).disabled = false;
+								}
+								sstr=''
+								sflag=0
+								for (var i = 0; i < place.address_components.length; i++) {
+									var addressType = place.address_components[i].types[0];
+									if (componentForm[addressType]) {
+										var val = place.address_components[i][componentForm[addressType]];
+										document.getElementById('src_'
+												+ addressType).value = val;
+										if(addressType=='street_number')
+										{
+										sstr=sstr+val
+										sflag=1
+										}
+									if(addressType=='route')
+										{
+										    if(sflag==1)
+										     	sstr=sstr+" "+val
+											else
+												sstr=sstr+val
+										}
+									}
+								}
+								document.getElementById('src_address').value = sstr;
+							gmarkers[-1]
+										.setPosition(place.geometry.location);
+							document.getElementById('src_lat').value=gmarkers[-1].position.lat();
+							document.getElementById('src_long').value=gmarkers[-1].position.lng();
+							
+								loc = new google.maps.LatLng(
+										gmarkers[-1].position.lat(),
+										gmarkers[-1].position.lng());
+								bounds.extend(loc);
+								//window.alert("No details available for input: '" + place.geometry.location.LatLng + "'");
+								gmarkers[-1].setVisible(true);
+								map.fitBounds(bounds);
+								map.panToBounds(bounds);
+							});
+			autocompletedst
+					.addListener(
+							'place_changed',
+							function() {
+								var place = autocompletedst.getPlace();
+						
+								
+								if(typeof(Storage) !== "undefined") {
+								sessionStorage.end=place.place_id;
+								
+								}
+								if (place.geometry.viewport) {
+									map.fitBounds(place.geometry.viewport);
+								} else {
+									map.setCenter(place.geometry.location);
+									map.setZoom(17); // Why 17? Because it looks good.
+								}
+								//window.alert("hi" + place.geometry.location);
+								for ( var component in componentForm) {
+									document.getElementById('dst_' + component).value = '';
+									document.getElementById('dst_' + component).disabled = false;
+								}
+								dstr=''
+								dflag=0
+								for (var i = 0; i < place.address_components.length; i++) {
+									var addressType = place.address_components[i].types[0];
+									if (componentForm[addressType]) {
+										var val = place.address_components[i][componentForm[addressType]];
+										document.getElementById('dst_'
+												+ addressType).value = val;
+										if(addressType=='street_number')
+											{
+											dstr=dstr+val
+											dflag=1
+											}
+										if(addressType=='route')
+											{
+											    if(dflag==1)
+											     	dstr=dstr+" "+val
+												else
+													dstr=dstr+val
+											}
+										
+									}
+								}
+								document.getElementById('dst_address').value = dstr;
+								
+								gmarkers[-2]
+										.setPosition(place.geometry.location);
+								document.getElementById('dst_lat').value=gmarkers[-2].position.lat();
+								document.getElementById('dst_long').value=gmarkers[-2].position.lng();
+
+								loc = new google.maps.LatLng(
+										gmarkers[-2].position.lat(),
+										gmarkers[-2].position.lng());
+								bounds.extend(loc);
+								//window.alert("No details available for input: '" + place.geometry.location.LatLng + "'");
+								gmarkers[-2].setVisible(true);
+								
+								map.fitBounds(bounds);
+								map.panToBounds(bounds);
+								
+							});
+		}
+		
+		
+		
+	</script>
+	<script
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrU8Jb48uFfWkIGfYG3qoHPYBf39yBgJ8&libraries=places&callback=initMap"
+		async defer></script>
+
+
+	<script type="text/javascript" src="static/js/Insertion2.js"></script>
+
+</body>
+</html>
